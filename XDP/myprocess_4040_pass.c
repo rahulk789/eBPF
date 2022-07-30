@@ -14,8 +14,8 @@
 
 //pid_t pid = task_pid_nr(current);
 //x = pid_nr(get_task_pid(current, PIDTYPE_PID))
-//struct task_struct *p;
-for (p = &init_task ; (p = next_task(p)) != &init_task ; ) {
+struct task_struct *p;
+for_each_process(p) {
 	if(p->comm == "myprocess")
 		int x= task_pid_nr(p);
 }
