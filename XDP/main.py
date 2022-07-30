@@ -2,8 +2,8 @@ from bcc import BPF #1
 from bcc.utils import printb
 
 device = "lo" #2
-b = BPF(src_file="myprocess_8080_drop.c") #3
-fn = b.load_func("myprocess_8080_drop", BPF.XDP) #4
+b = BPF(src_file="myprocess_4040_pass.c") #3
+fn = b.load_func("myprocess_4040_pass", BPF.XDP) #4
 b.attach_xdp(device, fn, 0) #5
 
 try:

@@ -1,5 +1,5 @@
 /* 
- * This Program runs a function "myprocess" as a process which connects to two TCP ports 9090, 8080 and echos three strings
+ * This Program runs a function "myprocess" as a process which connects to two TCP ports 9090, 4040 and echos three strings
  * The function prints it's process id and the source port of client (myprocess)
 */
 
@@ -13,17 +13,8 @@
 
 
 void myprocess(int sockfd){
-    int pid= 797979;
+    int pid= 0;
     int x=getpid();
-    FILE *fptr;
-    fptr = fopen("program","w");
-    if(fptr == NULL)
-    {
-      printf("Error!");   
-      exit(1);             
-    }
-    fprintf(fptr,"%d",x);
-    fclose(fptr);
     printf("my pid: %d \n",x);
     char buff[MAX];
     int n;
@@ -53,10 +44,10 @@ int main()
         printf("Socket successfully created..\n");
     bzero(&servaddr, sizeof(servaddr));
    
-    // assign IP, PORT:8080 
+    // assign IP, PORT:4040 
     servaddr.sin_family = AF_INET;
     servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
-    servaddr.sin_port =htons(8080);
+    servaddr.sin_port =htons(4040);
     struct sockaddr_in sin;
     socklen_t len = sizeof(sin);
     // connect the client socket to server socket
@@ -74,7 +65,7 @@ int main()
     	printf("port number %d\n", ntohs(sin.sin_port));	 
     
     
-    // myprocess port 8080
+    // myprocess port 4040
     myprocess(sockfd);
     close(sockfd);
     //close
