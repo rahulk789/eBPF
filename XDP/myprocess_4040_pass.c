@@ -14,15 +14,15 @@
 
 //pid_t pid = task_pid_nr(current);
 //x = pid_nr(get_task_pid(current, PIDTYPE_PID))
-struct task_struct *p;
-for_each_process(p) {
-	if(p->comm == "myprocess")
-		int x= task_pid_nr(p);
-}
+//struct task_struct *p;
+//for_each_process(p) {
+//	if(p->comm == "myprocess")
+//		int x= task_pid_nr(p);
+//}
 
 BPF_HISTOGRAM(counter, u64);
 
-int myprocess_4040_pass(struct xdp_md *ctx, int x)
+int myprocess_4040_pass(struct xdp_md *ctx)
 {
     void *data = (void *)(long)ctx->data;
     void *data_end = (void *)(long)ctx->data_end;
@@ -44,9 +44,9 @@ int myprocess_4040_pass(struct xdp_md *ctx, int x)
                     u64 value = htons(tcp->dest);
 		    //u64 source = ntohs(tcp->dest);
                     counter.increment(value);
-		    if (value == 4040 && x != -1)
+		    if (value == 4040)// && x != -1)
 			    return XDP_PASS;
-		    else if (value != 4040 && x != -1 )
+		    else if (value != 4040)// && x != -1 )
 			    return XDP_DROP;
                 }
             }
