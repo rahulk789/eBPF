@@ -1,5 +1,7 @@
-module github.com/lizrice/ebpf-beginners
+module github.com/cilium/ebpf/examples
 
-go 1.15
+go 1.17
 
-require github.com/aquasecurity/tracee/libbpfgo v0.0.0-20210130081938-febd3de75f55
+require github.com/cilium/ebpf v0.8.2-0.20220424153111-6da9518107a8
+
+require golang.org/x/sys v0.0.0-20211001092434-39dca1131b70 // indirect

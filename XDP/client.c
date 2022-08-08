@@ -57,13 +57,13 @@ int main()
     }
     else
         printf("connected to the server..\n");
-    
+    /*
     //printing source port
     if (getsockname(sockfd, (struct sockaddr *)&sin, &len) == -1)
     	perror("getsockname");
     else
     	printf("port number %d\n", ntohs(sin.sin_port));	 
-    
+    */
     
     // myprocess port 4040
     myprocess(sockfd);
@@ -84,11 +84,11 @@ int main()
     }
     
     //printing source port
-    if (getsockname(sockfd, (struct sockaddr *)&sin, &len) == -1)
+    /*if (getsockname(sockfd, (struct sockaddr *)&sin, &len) == -1)
     	perror("getsockname");
     else
     	printf("port number %d\n", ntohs(sin.sin_port));	 
-    
+    */
     // myprocess port 9090
     myprocess(sockfd);
     close(sockfd);
