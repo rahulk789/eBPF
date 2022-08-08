@@ -1,6 +1,7 @@
 CLANG ?= clang-14
 CFLAGS := -O2 -g -Wall -Werror $(CFLAGS)
-
+STRIP ?= llvm-strip
+OBJCOPY ?= llvm-objcopy
 format:
 	find . -type f -name "*.c" | xargs clang-format -i
 
@@ -13,7 +14,7 @@ generate: export BPF_CLANG := $(CLANG)
 generate: export BPF_CFLAGS := $(CFLAGS)
 generate:
 
-	go generate ./..
+	go generate 
 
 testdata/loader-%-el.elf: testdata/loader.c
 	$* $(CFLAGS) -target bpfel -c $< -o $@
