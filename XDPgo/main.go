@@ -1,3 +1,5 @@
+//go:build linux
+// +build linux
 package main
 
 import (
@@ -36,8 +38,9 @@ func main() {
 		log.Fatalf("could not attach XDP program: %s", err)
 	}
 	defer l.Close()
+}
 
-	e := make(chan []byte, 300)
+/*	e := make(chan []byte, 300)
 	p, err := bpfModule.InitPerfBuf("events", e, nil, 1024)
 	must(err)
 
