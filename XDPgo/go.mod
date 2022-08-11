@@ -1,7 +1,5 @@
-module github.com/cilium/ebpf/examples
+module gobpf-test
 
-go 1.17
+go 1.16
 
-require github.com/cilium/ebpf v0.8.2-0.20220424153111-6da9518107a8
-
-require golang.org/x/sys v0.0.0-20211001092434-39dca1131b70 // indirect
+require github.com/cilium/ebpf v0.9.1

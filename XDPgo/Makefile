@@ -1,41 +1,82 @@
-CLANG ?= clang-14
-CFLAGS := -O2 -g -Wall -Werror $(CFLAGS)
-STRIP ?= llvm-strip
-OBJCOPY ?= llvm-objcopy
-format:
-	find . -type f -name "*.c" | xargs clang-format -i
+APP=bpf
 
-all: format $(addsuffix -el.elf,$(TARGETS)) $(addsuffix -eb.elf,$(TARGETS)) generate
-	ln -srf testdata/loader-$(CLANG)-el.elf testdata/loader-el.elf
-	ln -srf testdata/loader-$(CLANG)-eb.elf testdata/loader-eb.elf
+.PHONY: build
+build: gen $(APP)
 
-# $BPF_CLANG is used in go:generate invocations.
-generate: export BPF_CLANG := $(CLANG)
-generate: export BPF_CFLAGS := $(CFLAGS)
-generate:
+.PHONY: run
+run: build
+	sudo ./$(APP)
 
-	go generate 
+.PHONY: gen
+gen: sum vmlinux gen_xdp_bpfel.go
 
-testdata/loader-%-el.elf: testdata/loader.c
-	$* $(CFLAGS) -target bpfel -c $< -o $@
+.PHONY: vmlinux
+vmlinux: vmlinux.h
 
-testdata/loader-%-eb.elf: testdata/loader.c
-	$* $(CFLAGS) -target bpfeb -c $< -o $@
+.PHONY: sum
+sum: go.sum
 
-%-el.elf: %.c
-	$(CLANG) $(CFLAGS) -target bpfel -c $< -o $@
+.PHONY: fmt
+fmt: sum
+	go fmt main.go
 
-%-eb.elf : %.c
-	$(CLANG) $(CFLAGS) -target bpfeb -c $< -o $@
+.PHONY: clean
+clean:
+	-rm $(APP)
+	-rm gen*
+	-rm vmlinux.h
+	-rm go.sum
+	sed 's/v.*/latest/g' -i go.mod
 
-.PHONY: generate-btf
-generate-btf: KERNEL_VERSION?=5.18
-generate-btf:
-	$(eval TMP := $(shell mktemp -d))
-	curl -fL "$(CI_KERNEL_URL)/linux-$(KERNEL_VERSION).bz" -o "$(TMP)/bzImage"
-	./testdata/extract-vmlinux "$(TMP)/bzImage" > "$(TMP)/vmlinux"
-	$(OBJCOPY) --dump-section .BTF=/dev/stdout "$(TMP)/vmlinux" /dev/null | gzip > "btf/testdata/vmlinux.btf.gz"
-	curl -fL "$(CI_KERNEL_URL)/linux-$(KERNEL_VERSION)-selftests-bpf.tgz" -o "$(TMP)/selftests.tgz"
-	tar -xf "$(TMP)/selftests.tgz" --to-stdout tools/testing/selftests/bpf/bpf_testmod/bpf_testmod.ko | \
-		$(OBJCOPY) --dump-section .BTF="btf/testdata/btf_testmod.btf" - /dev/null
-	$(RM) -r "$(TMP)"
+$(APP): main.go gen_xdp_bpfel.go
+	CGO_ENABLED=0 go build -o $(APP) main.go 
+
+vmlinux.h:
+	bpftool btf dump file /sys/kernel/btf/vmlinux format c > ./vmlinux.h
+
+gen_xdp_bpfel.go: xdp.bpf.c
+	go generate main.go
+
+go.sum:
+	go mod download github.com/cilium/ebpf
+	go get github.com/cilium/ebpf/internal/unix
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
