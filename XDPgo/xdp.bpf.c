@@ -3,6 +3,8 @@
 #include "vmlinux.h"
 #include <bpf/bpf_helpers.h>
 
+uint16_t htons(uint16_t hostshort);
+
 SEC("xdp")
 int xdp_filter(struct xdp_md *ctx) {
   void *data = (void *)(long)ctx->data;

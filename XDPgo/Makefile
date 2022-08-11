@@ -29,7 +29,7 @@ clean:
 	sed 's/v.*/latest/g' -i go.mod
 
 $(APP): main.go gen_xdp_bpfel.go
-	CGO_ENABLED=0 go build -o $(APP) main.go 
+	go build 
 
 vmlinux.h:
 	bpftool btf dump file /sys/kernel/btf/vmlinux format c > ./vmlinux.h
@@ -39,7 +39,6 @@ gen_xdp_bpfel.go: xdp.bpf.c
 
 go.sum:
 	go mod download github.com/cilium/ebpf
-	go get github.com/cilium/ebpf/internal/unix
 
 
 

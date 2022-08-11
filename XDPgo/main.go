@@ -5,12 +5,12 @@ package main
 import (
 	"C"
 	"github.com/cilium/ebpf/link"
-	"github.com/cilium/ebpf"
 )
 import (
-	"fmt"
 	"os"
-	"os/signal"
+    "log"
+    "os/signal"
+    "net"
 )
 
 //go:generate go run github.com/cilium/ebpf/cmd/bpf2go -target bpfel -cc clang bpf ./xdp.bpf.c -- -I/usr/include/bpf -I.
@@ -30,7 +30,7 @@ func main() {
 
 	// Attach the program.
 	l, err := link.AttachXDP(link.XDPOptions{
-		Program:   objs.XdpProgFunc,
+		Program:   objs.XdpFilter,
 		Interface: iface.Index,
 	})
 	if err != nil {

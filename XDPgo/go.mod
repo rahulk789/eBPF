@@ -1,4 +1,4 @@
-module gobpf-test
+module xdp
 
 go 1.16
 
