@@ -1,3 +1,4 @@
+
 //go:build linux
 // +build linux
 package main
@@ -5,17 +6,23 @@ package main
 import (
 	"C"
 	"github.com/cilium/ebpf/link"
+    "github.com/cilium/ebpf/perf"
 )
 import (
-	"os"
+    "bytes"
+    "encoding/binary"
+    "os"
     "log"
     "os/signal"
     "net"
 )
-
+type y struct {
+    comm byte
+}
 //go:generate go run github.com/cilium/ebpf/cmd/bpf2go -target bpfel -cc clang bpf ./xdp.bpf.c -- -I/usr/include/bpf -I.
 func main() {
-	sig := make(chan os.Signal, 1)
+    var x y
+    sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt)
 
     ifaceName := "lo"
@@ -27,7 +34,20 @@ func main() {
 		log.Fatalf("loading objects: %s", err)
 	}
 	defer objs.Close()
+    link.Tracepoint("syscalls", "sys_enter_execve", objs.Getp, nil)
+    rd, _ := perf.NewReader(objs.Events, os.Getpagesize())
 
+    for {
+    	ev, err := rd.Read()
+		if err != nil {
+			log.Fatalf("Read fail")
+		}
+        b_arr := bytes.NewBuffer(ev.RawSample)
+    if err := binary.Read(b_arr, binary.LittleEndian, &x); err != nil {
+			log.Printf("parsing perf event: %s", err)
+            continue
+		} 
+    if x.comm=="myprocess" {
 	// Attach the program.
 	l, err := link.AttachXDP(link.XDPOptions{
 		Program:   objs.XdpFilter,
@@ -37,6 +57,9 @@ func main() {
 		log.Fatalf("could not attach XDP program: %s", err)
 	}
 	defer l.Close()
+    <-sig }
+    <-sig
+}
 }
 
 /*	e := make(chan []byte, 300)
@@ -53,7 +76,6 @@ func main() {
 		}
 	}()
 
-	<-sig
 	p.Stop()
 	for comm, n := range counter {
 		fmt.Printf("%s: %d\n", comm, n)

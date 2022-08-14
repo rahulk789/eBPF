@@ -29,7 +29,7 @@ clean:
 	sed 's/v.*/latest/g' -i go.mod
 
 $(APP): main.go gen_xdp_bpfel.go
-	go build 
+	 go build 
 
 vmlinux.h:
 	bpftool btf dump file /sys/kernel/btf/vmlinux format c > ./vmlinux.h

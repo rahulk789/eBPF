@@ -54,6 +54,7 @@ type bpfSpecs struct {
 //
 // It can be passed ebpf.CollectionSpec.Assign.
 type bpfProgramSpecs struct {
+	Getp      *ebpf.ProgramSpec `ebpf:"getp"`
 	XdpFilter *ebpf.ProgramSpec `ebpf:"xdp_filter"`
 }
 
@@ -61,6 +62,7 @@ type bpfProgramSpecs struct {
 //
 // It can be passed ebpf.CollectionSpec.Assign.
 type bpfMapSpecs struct {
+	Events *ebpf.MapSpec `ebpf:"events"`
 }
 
 // bpfObjects contains all objects after they have been loaded into the kernel.
@@ -82,21 +84,26 @@ func (o *bpfObjects) Close() error {
 //
 // It can be passed to loadBpfObjects or ebpf.CollectionSpec.LoadAndAssign.
 type bpfMaps struct {
+	Events *ebpf.Map `ebpf:"events"`
 }
 
 func (m *bpfMaps) Close() error {
-	return _BpfClose()
+	return _BpfClose(
+		m.Events,
+	)
 }
 
 // bpfPrograms contains all programs after they have been loaded into the kernel.
 //
 // It can be passed to loadBpfObjects or ebpf.CollectionSpec.LoadAndAssign.
 type bpfPrograms struct {
+	Getp      *ebpf.Program `ebpf:"getp"`
 	XdpFilter *ebpf.Program `ebpf:"xdp_filter"`
 }
 
 func (p *bpfPrograms) Close() error {
 	return _BpfClose(
+		p.Getp,
 		p.XdpFilter,
 	)
 }

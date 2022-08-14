@@ -2,8 +2,25 @@
 
 #include "vmlinux.h"
 #include <bpf/bpf_helpers.h>
+char __license[] SEC("license") = "Dual MIT/GPL";
 
-uint16_t htons(uint16_t hostshort);
+struct x {
+    u8 comm[100];
+}d;
+struct {
+	__uint(type, BPF_MAP_TYPE_PERF_EVENT_ARRAY);
+	__uint(key_size, sizeof(u32));
+	__uint(value_size, sizeof(u32));
+} events SEC(".maps");
+
+SEC("tracepoint/syscalls/sys_enter_execve")
+
+int getp(void *ctx)
+{
+    bpf_get_current_comm(&d, sizeof(d.comm));
+    bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU, &d, sizeof(d.comm));
+    return 0;
+}
 
 SEC("xdp")
 int xdp_filter(struct xdp_md *ctx) {
@@ -20,14 +37,13 @@ int xdp_filter(struct xdp_md *ctx) {
 
         struct tcphdr *tcp = (void *)ip + sizeof(*ip);
         if ((void *)tcp + sizeof(*tcp) <= data_end) {
-          __u64 value = htons(tcp->dest);
-          // u64 source = ntohs(tcp->dest);
+          u64 value = (tcp->dest);
 //          counter.Put(value);
           //if (value)
-              //__sync_fetch_and_add(value, 1);
-          if (value == 4040) // && x != -1)
+            //  __sync_fetch_and_add(value, 1);
+          if (value == 4040)//  && x != "myprocess" )
             return XDP_PASS;
-          else if (value != 4040) // && x != -1 )
+          else if (value != 4040)//  && x != "myprocess" )
             return XDP_DROP;
         }
       }
