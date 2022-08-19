@@ -11,7 +11,8 @@
 #include <linux/pid.h>
 #include <linux/tty.h>
 #include <linux/module.h>
-
+#include <linux/fs.h>
+#include <uapi/linux/ptrace.h>
 //pid_t pid = task_pid_nr(current);
 //x = pid_nr(get_task_pid(current, PIDTYPE_PID))
 //struct task_struct *p;
@@ -23,7 +24,9 @@
 BPF_HISTOGRAM(counter, u64);
 
 int myprocess_4040_pass(struct xdp_md *ctx)
-{
+{   char data1[100];
+    bpf_get_current_comm(&data1, 100);
+    
     void *data = (void *)(long)ctx->data;
     void *data_end = (void *)(long)ctx->data_end;
     struct ethhdr *eth = data;
