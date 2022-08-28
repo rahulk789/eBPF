@@ -53,8 +53,7 @@ func main() {
 		log.Fatalf("could not attach XDP program: %s", err)
 	}
 	defer l.Close()
-    <-sig }
-    <-sig
+     }
 }
 }
 
