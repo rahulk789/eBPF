@@ -2,7 +2,16 @@
 
 #include "vmlinux.h"
 #include <bpf/bpf_helpers.h>
+//#include <fcntl.h>
+//#include <unistd.h>
 char __license[] SEC("license") = "Dual MIT/GPL";
+/*
+int f = open("~/proc/net/netlink",O_RDONLY);
+char x[99999];
+int file = read(f,x,99999);
+close(f);
+*/
+
 
 struct {
 	__uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);
@@ -15,7 +24,7 @@ SEC("tracepoint/syscalls/sys_enter_execve")
 
 int getp(void *ctx)
 {   char d[100];
-    char c[100] = "myprocess"
+    char c[100] = "myprocess";
   int key=4040;
    bpf_get_current_comm(&d, sizeof(d));
    if (c == d){
@@ -56,5 +65,5 @@ int xdp_filter(struct xdp_md *ctx) {
       }
     }
   }
-  return XDP_PASS;
+  return SK_PASS;
 }

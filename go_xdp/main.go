@@ -5,24 +5,32 @@ package main
 
 import (
 	"C"
-	"github.com/cilium/ebpf/link"
+//	"github.com/cilium/ebpf/link"
 //    "github.com/cilium/ebpf/perf"
 )
 import (
 //    "bytes"
 //    "encoding/binary"
-    "os"
-    "log"
+"fmt"
+"os"
+    "io/ioutil"
+//    "log"
     "os/signal"
-    "net"
-    "time"
+//    "net"
+//    "time"
 )
 
 //go:generate go run github.com/cilium/ebpf/cmd/bpf2go -target bpfel -cc clang bpf ./xdp.bpf.c -- -I/usr/include/bpf -I.
 func main() {
     sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt)
-
+    
+    data, err := ioutil.ReadFile("/proc/net/netlink")
+    fmt.Print(string(data))
+    if err != nil {
+        fmt.Println(err)
+    }
+/*
     ifaceName := "lo"
 	iface, _ := net.InterfaceByName(ifaceName)
 
@@ -54,7 +62,7 @@ func main() {
 	}
 	defer l.Close()
      }
-}
+}*/
 }
 
 /*	e := make(chan []byte, 300)
