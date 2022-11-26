@@ -29,22 +29,6 @@ int count_egress_packets(struct __sk_buff *skb) {
 		return 1;
 	}
 	__sync_fetch_and_add(count, 1);
-    int proto_num,src_port,dest_port;
-    struct iphdr *ih = ip_hdr(skb);
-    proto_num = ih->protocol;
-    switch (ih->protocol)
-    {
-    case IPPROTO_TCP:
-    {
-        struct tcphdr *th = tcp_hdr(skb);
-        src_port = th->source;
-        dest_port = th->dest;
-        break;
-    }
-    default:
-        src_port = 0;
-        dest_port = 0;
-    }
-	return 1;
+	return SK_DROP;
 }
 

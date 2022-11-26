@@ -56,6 +56,5 @@ func main() {
 		log.Printf("number of packets: %d\n", value)
 	}
 }
-
-		// example fields: cgroup2 /sys/fs/cgroup/unified cgroup2 rw,nosuid,nodev,noexec,relatime 0 0
+// example fields: cgroup2 /sys/fs/cgroup/unified cgroup2 rw,nosuid,nodev,noexec,relatime 0 0
 

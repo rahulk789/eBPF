@@ -2,6 +2,8 @@
  * This Program runs a function "myprocess" as a process which connects to two TCP ports 9090, 4040 and echos three strings
  * The function prints it's process id and the source port of client (myprocess)
 */
+//nc -l -p 4040
+//nc 127.0.0.1 4040
 
 #include <netdb.h>
 #include <stdio.h>
@@ -13,10 +15,7 @@
 
 
 void myprocess(int sockfd){
-    int pid= 0;
-    int x=getpid();
-    printf("my pid: %d \n",x);
-    char buff[MAX];
+   char buff[MAX];
     int n;
     int t=3;
     while (t--) {
@@ -30,10 +29,12 @@ void myprocess(int sockfd){
 }
    
 int main()
-{
-    int sockfd, connfd;
+{   int pid= 0;
+    int x=getpid();
+    printf("my pid: %d \n",x);
+    int no,sockfd, connfd;
     struct sockaddr_in servaddr, cli;
-   
+    scanf("%d",&no);
     // socket create and verification
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd == -1) {
@@ -92,5 +93,6 @@ int main()
     // myprocess port 9090
     myprocess(sockfd);
     close(sockfd);
+    printf("%d",no);
     // close connection
 }
