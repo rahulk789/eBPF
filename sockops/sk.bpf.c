@@ -1,7 +1,7 @@
 // +build ignore
-
 #include "vmlinux.h"
 #include <bpf/bpf_helpers.h>
+
 char __license[] SEC("license") = "Dual MIT/GPL";
 
 struct bpf_map_def {
@@ -29,6 +29,24 @@ int count_egress_packets(struct __sk_buff *skb) {
 		return 1;
 	}
 	__sync_fetch_and_add(count, 1);
-	return SK_DROP;
+    void *data = (void *)(long)skb->data;
+    void *data_end = (void *)(long)skb->data_end;
+    struct ethhdr *eth = data;
+    if ((void *)eth + sizeof(*eth) <= data_end) {
+        struct iphdr *ip = data + sizeof(*eth);
+        if ((void *)ip + sizeof(*ip) <= data_end) {
+            if (ip->protocol == IPPROTO_TCP) {
+                struct tcphdr *tcp = (void *)ip + sizeof(*ip);
+                if ((void *)tcp + sizeof(*tcp) <= data_end) {
+                    u64 value = tcp->dest;
+                    if (value == 4040)
+                    return SK_PASS;
+                    else if (value != 4040)
+                    return SK_DROP;
+                }
+            }
+        }
+    }
+return SK_PASS;
 }
 

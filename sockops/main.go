@@ -5,6 +5,7 @@
 package main
 
 import (
+    "C"
 	"time"
     "log"
 	"github.com/cilium/ebpf"
