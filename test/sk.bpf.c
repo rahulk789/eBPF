@@ -39,7 +39,6 @@ int count_egress_packets(struct __sk_buff *skb) {
         		return true;
 		}
 	}
+    return false;
 
-    	return true;
 }
-
