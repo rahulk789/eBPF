@@ -55,7 +55,6 @@ type bpfSpecs struct {
 // It can be passed ebpf.CollectionSpec.Assign.
 type bpfProgramSpecs struct {
 	CountEgressPackets *ebpf.ProgramSpec `ebpf:"count_egress_packets"`
-	Dropper            *ebpf.ProgramSpec `ebpf:"dropper"`
 }
 
 // bpfMapSpecs contains maps before they are loaded into the kernel.
@@ -98,13 +97,11 @@ func (m *bpfMaps) Close() error {
 // It can be passed to loadBpfObjects or ebpf.CollectionSpec.LoadAndAssign.
 type bpfPrograms struct {
 	CountEgressPackets *ebpf.Program `ebpf:"count_egress_packets"`
-	Dropper            *ebpf.Program `ebpf:"dropper"`
 }
 
 func (p *bpfPrograms) Close() error {
 	return _BpfClose(
 		p.CountEgressPackets,
-		p.Dropper,
 	)
 }
 
