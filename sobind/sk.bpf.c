@@ -1,52 +1,85 @@
 // +build ignore
 
 #include "vmlinux.h"
-#include <bpf/bpf_helpers.h>
-#include <bpf/bpf_core_read.h>
-#include <bpf/bpf_endian.h>
-#include <bpf/bpf_helpers.h>
-#include <bpf/bpf_tracing.h>
-
 #define AF_INET 2
 #define AF_INET6 10
+
+#define AF_INET 2
+#define TASK_COMM_LEN 16
 char __license[] SEC("license") = "Dual MIT/GPL";
 
-// Common structure for UDP/TCP IPv4/IPv6
-struct bind_events {
-    u64 pid_tgid;
-    u64 proto;    
-    u64 lport;    
-    struct in6_addr laddr; 
-    u8 task[80];
-};
+struct sock_common {
+	union {
+		struct {
+			// skc_daddr is destination IP address
+			__be32 skc_daddr;
+			// skc_rcv_saddr is the source IP address
+			__be32 skc_rcv_saddr;
+		};
+	};
+	union {
+		struct {
+			// skc_dport is the destination TCP/UDP port
+			__be16 skc_dport;
+			// skc_num is the source TCP/UDP port
+			__u16 skc_num;
+		};
+	};
+	// skc_family is the network address family (2 for IPV4)
+	short unsigned int skc_family;
+} __attribute__((preserve_access_index));
+
+/**
+ * struct sock is the network layer representation of sockets.
+ * This is a simplified copy of the kernel's struct sock.
+ * This copy is needed only to access struct sock_common.
+ */
+struct sock {
+	struct sock_common __sk_common;
+} __attribute__((preserve_access_index));
+
+
 struct {
-    __uint(type, BPF_MAP_TYPE_RINGBUF);
-    __uint(max_entries, 1 << 24);
+	__uint(type, BPF_MAP_TYPE_RINGBUF);
+	__uint(max_entries, 1 << 24);
 } events SEC(".maps");
 
-const struct bind_events *unused __attribute__((unused));
+/**
+ * The sample submitted to userspace over a ring buffer.
+ * Emit struct event's type info into the ELF's BTF so bpf2go
+ * can generate a Go type from it.
+ */
+struct event {
+	u8 comm[16];
+	__u16 sport;
+	__be16 dport;
+	__be32 saddr;
+	__be32 daddr;
+};
+struct event *unused __attribute__((unused));
 
-SEC("kprobe/inet_bind")
-// Send an event for each IPv4 bind with PID, bound address and port
-int inet_bind(struct pt_regs *ctx, struct sock *sk)
-{
-        struct bind_events *evt;
-        evt = bpf_ringbuf_reserve(&events, sizeof(struct bind_events),0);
-        if (!evt) return 0;
-        u64 pid = bpf_get_current_pid_tgid();
-        pid = pid >> 32 ;
-        evt->pid_tgid=pid; 
+SEC("fentry/tcp_connect")
+int BPF_PROG(tcp_connect, struct sock *sk) {
+	if (sk->__sk_common.skc_family != AF_INET) {
+		return 0;
+	}
 
-        u8 protocol = 0;
-        u16 family = BPF_CORE_READ(sk, __sk_common.skc_family);
-        evt->proto = family << 16 | protocol;
+	struct event *tcp_info;
+	tcp_info = bpf_ringbuf_reserve(&events, sizeof(struct event), 0);
+	if (!tcp_info) {
+		return 0;
+	}
 
-        evt->lport = BPF_CORE_READ(sk, __sk_common.skc_num);
-        evt->laddr = BPF_CORE_READ(sk, __sk_common.skc_v6_rcv_saddr);
+	tcp_info->saddr = sk->__sk_common.skc_rcv_saddr;
+	tcp_info->daddr = sk->__sk_common.skc_daddr;
+	tcp_info->dport = sk->__sk_common.skc_dport;
+	tcp_info->sport = bpf_htons(sk->__sk_common.skc_num);
 
-        bpf_get_current_comm(evt->task, 80);
-        bpf_ringbuf_submit(evt,0);
-        return 0;
+	bpf_get_current_comm(&tcp_info->comm, TASK_COMM_LEN);
+
+	bpf_ringbuf_submit(tcp_info, 0);
+
+	return 0;
 }/*
 SEC("socket")
 int dropper(struct __sk_buff *skb) {

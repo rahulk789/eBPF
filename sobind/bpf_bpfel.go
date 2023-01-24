@@ -13,12 +13,12 @@ import (
 	"github.com/cilium/ebpf"
 )
 
-type bpfBindEvents struct {
-	PidTgid uint64
-	Proto   uint64
-	Lport   uint64
-	Laddr   struct{ In6U struct{ U6Addr8 [16]uint8 } }
-	Task    [80]uint8
+type bpfEvent struct {
+	Comm  [16]uint8
+	Sport uint16
+	Dport uint16
+	Saddr uint32
+	Daddr uint32
 }
 
 // loadBpf returns the embedded CollectionSpec for bpf.
@@ -62,7 +62,7 @@ type bpfSpecs struct {
 //
 // It can be passed ebpf.CollectionSpec.Assign.
 type bpfProgramSpecs struct {
-	InetBind *ebpf.ProgramSpec `ebpf:"inet_bind"`
+	TcpConnect *ebpf.ProgramSpec `ebpf:"tcp_connect"`
 }
 
 // bpfMapSpecs contains maps before they are loaded into the kernel.
@@ -104,12 +104,12 @@ func (m *bpfMaps) Close() error {
 //
 // It can be passed to loadBpfObjects or ebpf.CollectionSpec.LoadAndAssign.
 type bpfPrograms struct {
-	InetBind *ebpf.Program `ebpf:"inet_bind"`
+	TcpConnect *ebpf.Program `ebpf:"tcp_connect"`
 }
 
 func (p *bpfPrograms) Close() error {
 	return _BpfClose(
-		p.InetBind,
+		p.TcpConnect,
 	)
 }
 
