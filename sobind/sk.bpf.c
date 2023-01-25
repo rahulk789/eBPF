@@ -1,44 +1,17 @@
 // +build ignore
 
 #include "vmlinux.h"
+#include <bpf/bpf_helpers.h>
+#include <bpf/bpf_endian.h>
+#include <bpf/bpf_tracing.h>
+
 #define AF_INET 2
 #define AF_INET6 10
 
 #define AF_INET 2
 #define TASK_COMM_LEN 16
+
 char __license[] SEC("license") = "Dual MIT/GPL";
-
-struct sock_common {
-	union {
-		struct {
-			// skc_daddr is destination IP address
-			__be32 skc_daddr;
-			// skc_rcv_saddr is the source IP address
-			__be32 skc_rcv_saddr;
-		};
-	};
-	union {
-		struct {
-			// skc_dport is the destination TCP/UDP port
-			__be16 skc_dport;
-			// skc_num is the source TCP/UDP port
-			__u16 skc_num;
-		};
-	};
-	// skc_family is the network address family (2 for IPV4)
-	short unsigned int skc_family;
-} __attribute__((preserve_access_index));
-
-/**
- * struct sock is the network layer representation of sockets.
- * This is a simplified copy of the kernel's struct sock.
- * This copy is needed only to access struct sock_common.
- */
-struct sock {
-	struct sock_common __sk_common;
-} __attribute__((preserve_access_index));
-
-
 struct {
 	__uint(type, BPF_MAP_TYPE_RINGBUF);
 	__uint(max_entries, 1 << 24);
@@ -69,7 +42,7 @@ int BPF_PROG(tcp_connect, struct sock *sk) {
 	if (!tcp_info) {
 		return 0;
 	}
-
+    bpf_probe_read(&sk, sizeof(sk), (void *)PT_REGS_PARM1(ctx));
 	tcp_info->saddr = sk->__sk_common.skc_rcv_saddr;
 	tcp_info->daddr = sk->__sk_common.skc_daddr;
 	tcp_info->dport = sk->__sk_common.skc_dport;

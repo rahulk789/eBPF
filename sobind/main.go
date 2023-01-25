@@ -5,6 +5,7 @@
 package main
 
 import (
+	"C"
 	"bytes"
 	"encoding/binary"
 	"errors"
