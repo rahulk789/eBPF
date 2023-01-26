@@ -26,12 +26,12 @@ import (
 func main() {
 	// Name of the kernel function to trace.
 	fn := "sys_execve"
-    
+
     pidarg := flag.Int("pid",1000,"the pid of the process to be filtered")
     flag.Parse()
     pid := *pidarg
     //bpf_map_update_elem(pidcheck,pid)
-    fmt.Printf("pid:%d",pid)	
+    fmt.Printf("pid:%d",pid)
     // Subscribe to signals for terminating the program.
 	stopper := make(chan os.Signal, 1)
 	signal.Notify(stopper, os.Interrupt, syscall.SIGTERM)
@@ -96,7 +96,7 @@ func main() {
 			continue
 		}
 
-		log.Printf("pid: %d\tcomm: %s\n", event.Pid, unix.ByteSliceToString(event.Comm[:]))
+        log.Printf("pid: %d\tcomm: %s\t lport:%d\n", event.Pid, unix.ByteSliceToString(event.Comm[:]),event.lport)
 	}
 }
 

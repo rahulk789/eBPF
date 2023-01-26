@@ -26,7 +26,7 @@ struct {
 const struct event_data *unused __attribute__((unused));
 
 SEC("kprobe/sys_execve")
-int kprobe_execve(struct pt_regs *ctx)
+int kprobe_execve(struct pt_regs *ctx,const struct sockaddr *addr)
 { 
    struct event_data *evt;
    int key= 4040;
@@ -35,7 +35,12 @@ int kprobe_execve(struct pt_regs *ctx)
    if (!evt) return 0;
    evt->pid =  bpf_get_current_pid_tgid();
    evt->pid = evt->pid >> 32;
+   
    bpf_get_current_comm(&evt->comm, sizeof(evt->comm));
+   
+   struct sockaddr_in *in_addr = (struct sockaddr_in *)addr;
+   evt.lport = in_addr->sin_port;
+   evt.lport = ntohs(evt.lport);
    
    bpf_ringbuf_submit(evt,0);
    
