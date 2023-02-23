@@ -21,7 +21,7 @@ import (
 	"github.com/cilium/ebpf/rlimit"
 )
 
-//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -target bpfel -cc clang -type event bpf ./sk.bpf.c -- -I/usr/include/bpf -I.
+//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -target bpfel -cc clang -cflags -O2 -cflags -g -cflags -Wall -cflags -Werror -type event bpf ./sk.bpf.c -- -I ../headers.
 
 func main() {
 	stopper := make(chan os.Signal, 1)
