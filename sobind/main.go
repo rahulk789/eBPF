@@ -47,6 +47,19 @@ func main() {
 	}
 	defer link.Close()
 
+	defer prog.Close()
+
+	conn, err := net.ListenTCP("tcp4", &net.TCPAddr{IP: net.IPv4(127, 0, 0, 1)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.Close()
+
+	if err := AttachSocketFilter(conn, objs.bpfPrograms.socket); err != nil {
+		t.Fatal(err)
+	}
+	
+
 	rd, err := ringbuf.NewReader(objs.bpfMaps.Events)
 	if err != nil {
 		log.Fatalf("opening ringbuf reader: %s", err)
@@ -59,6 +72,9 @@ func main() {
 		if err := rd.Close(); err != nil {
 			log.Fatalf("closing ringbuf reader: %s", err)
 		}
+        if err := DetachSocketFilter(conn); err != nil {
+		    t.Fatal(err)
+	    }
 	}()
 
 	log.Printf("%-16s %-15s %-6s -> %-15s %-6s",

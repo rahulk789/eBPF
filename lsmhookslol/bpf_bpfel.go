@@ -13,12 +13,6 @@ import (
 	"github.com/cilium/ebpf"
 )
 
-type bpfEventData struct {
-	Pid   uint64
-	Lport uint64
-	Comm  [16]uint8
-}
-
 // loadBpf returns the embedded CollectionSpec for bpf.
 func loadBpf() (*ebpf.CollectionSpec, error) {
 	reader := bytes.NewReader(_BpfBytes)
@@ -34,9 +28,9 @@ func loadBpf() (*ebpf.CollectionSpec, error) {
 //
 // The following types are suitable as obj argument:
 //
-//	*bpfObjects
-//	*bpfPrograms
-//	*bpfMaps
+//     *bpfObjects
+//     *bpfPrograms
+//     *bpfMaps
 //
 // See ebpf.CollectionSpec.LoadAndAssign documentation for details.
 func loadBpfObjects(obj interface{}, opts *ebpf.CollectionOptions) error {
@@ -60,14 +54,14 @@ type bpfSpecs struct {
 //
 // It can be passed ebpf.CollectionSpec.Assign.
 type bpfProgramSpecs struct {
-	KprobeExecve *ebpf.ProgramSpec `ebpf:"kprobe_execve"`
+	CountEgressPackets *ebpf.ProgramSpec `ebpf:"count_egress_packets"`
 }
 
 // bpfMapSpecs contains maps before they are loaded into the kernel.
 //
 // It can be passed ebpf.CollectionSpec.Assign.
 type bpfMapSpecs struct {
-	Events *ebpf.MapSpec `ebpf:"events"`
+	PktCount *ebpf.MapSpec `ebpf:"pkt_count"`
 }
 
 // bpfObjects contains all objects after they have been loaded into the kernel.
@@ -89,12 +83,12 @@ func (o *bpfObjects) Close() error {
 //
 // It can be passed to loadBpfObjects or ebpf.CollectionSpec.LoadAndAssign.
 type bpfMaps struct {
-	Events *ebpf.Map `ebpf:"events"`
+	PktCount *ebpf.Map `ebpf:"pkt_count"`
 }
 
 func (m *bpfMaps) Close() error {
 	return _BpfClose(
-		m.Events,
+		m.PktCount,
 	)
 }
 
@@ -102,12 +96,12 @@ func (m *bpfMaps) Close() error {
 //
 // It can be passed to loadBpfObjects or ebpf.CollectionSpec.LoadAndAssign.
 type bpfPrograms struct {
-	KprobeExecve *ebpf.Program `ebpf:"kprobe_execve"`
+	CountEgressPackets *ebpf.Program `ebpf:"count_egress_packets"`
 }
 
 func (p *bpfPrograms) Close() error {
 	return _BpfClose(
-		p.KprobeExecve,
+		p.CountEgressPackets,
 	)
 }
 
@@ -121,6 +115,5 @@ func _BpfClose(closers ...io.Closer) error {
 }
 
 // Do not access this directly.
-//
 //go:embed bpf_bpfel.o
 var _BpfBytes []byte

@@ -60,7 +60,8 @@ type bpfSpecs struct {
 //
 // It can be passed ebpf.CollectionSpec.Assign.
 type bpfProgramSpecs struct {
-	KprobeExecve *ebpf.ProgramSpec `ebpf:"kprobe_execve"`
+	KprobeExecve  *ebpf.ProgramSpec `ebpf:"kprobe_execve"`
+	PacketDropper *ebpf.ProgramSpec `ebpf:"packet_dropper"`
 }
 
 // bpfMapSpecs contains maps before they are loaded into the kernel.
@@ -102,12 +103,14 @@ func (m *bpfMaps) Close() error {
 //
 // It can be passed to loadBpfObjects or ebpf.CollectionSpec.LoadAndAssign.
 type bpfPrograms struct {
-	KprobeExecve *ebpf.Program `ebpf:"kprobe_execve"`
+	KprobeExecve  *ebpf.Program `ebpf:"kprobe_execve"`
+	PacketDropper *ebpf.Program `ebpf:"packet_dropper"`
 }
 
 func (p *bpfPrograms) Close() error {
 	return _BpfClose(
 		p.KprobeExecve,
+		p.PacketDropper,
 	)
 }
 

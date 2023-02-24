@@ -85,14 +85,28 @@ int BPF_PROG(tcp_connect, struct sock *sk) {
 	return 0;
 }
 SEC("socket")
-int dropper(struct __sk_buff *skb) {
-    struct ethhdr *eth = (void *)(long)skb->data;
-    	struct iphdr *ip = (void *)(long)(skb->data + sizeof(struct ethhdr));
-    	if (ip->protocol == IPPROTO_TCP) {
-    		struct tcphdr *tcp = (void *)(long)(skb->data + sizeof(struct ethhdr) + sizeof(struct iphdr));
-    		if (tcp->dest == htons(4040)) {
-        		return 1;
-		}
-	}
-        return 0;
+int socket(struct __sk_buff *skb) {
+  void *data = (void *)(long)skb->data;
+  void *data_end = (void *)(long)skb->data_end;
+  struct ethhdr *eth = data;
+
+  if ((void *)eth + sizeof(*eth) <= data_end) {
+
+    struct iphdr *ip = data + sizeof(*eth);
+    if ((void *)ip + sizeof(*ip) <= data_end) {
+
+      if (ip->protocol == IPPROTO_TCP) {
+
+        struct tcphdr *tcp = (void *)ip + sizeof(*ip);
+        if ((void *)tcp + sizeof(*tcp) <= data_end) {
+          u64 value = (tcp->dest);
+          if (value != 4040)//  && x != "myprocess" )
+            return XDP_PASS;
+          else if (value == 4040)//  && x != "myprocess" )
+            return XDP_DROP;
+        }
+      }
+    }
+  }
+  return XDP_PASS;
 }
